@@ -1,4 +1,4 @@
-package net.fabricmc.example;
+package io.github.ninty9.lastlife;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;

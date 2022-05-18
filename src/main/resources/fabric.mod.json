@@ -2,11 +2,18 @@
   "schemaVersion": 1,
   "id": "lastlife",
   "version": "${version}",
+  "custom": {
+    "cardinal-components": [
+      "lastlife:lives"
+    ]
+  },
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Last Life: Season 2",
+  "description": "the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never the end is never ",
   "authors": [
-    "Me!"
+    "Ninty",
+    ">_",
+    "[@]"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -14,12 +21,15 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/lastlife/modimg.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "io.github.ninty9.lastlife.ExampleMod"
+    ],
+    "cardinal-components": [
+      "io.github.ninty9.lastlife.LivesComponent"
     ]
   },
   "mixins": [
