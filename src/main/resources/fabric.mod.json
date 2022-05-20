@@ -26,10 +26,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "io.github.ninty9.lastlife.ExampleMod"
+      "io.github.ninty9.lastlife.Initializer"
     ],
     "cardinal-components": [
-      "io.github.ninty9.lastlife.LivesComponent"
+      "io.github.ninty9.lastlife.Components"
     ]
   },
   "mixins": [

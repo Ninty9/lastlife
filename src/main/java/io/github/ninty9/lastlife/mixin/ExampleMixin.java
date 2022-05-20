@@ -1,6 +1,6 @@
 package io.github.ninty9.lastlife.mixin;
 
-import io.github.ninty9.lastlife.ExampleMod;
+import io.github.ninty9.lastlife.Initializer;
 import net.minecraft.client.gui.screen.TitleScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ExampleMixin {
 	@Inject(at = @At("HEAD"), method = "init()V")
 	private void init(CallbackInfo info) {
-		ExampleMod.LOGGER.info("This line is printed by an example mod mixin!");
+		Initializer.LOGGER.info("This line is printed by an example mod mixin!");
 	}
 }
