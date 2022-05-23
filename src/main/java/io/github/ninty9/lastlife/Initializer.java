@@ -1,7 +1,9 @@
 package io.github.ninty9.lastlife;
 
 import com.mojang.brigadier.Command;
+import io.github.ninty9.lastlife.commands.GetLives;
 import io.github.ninty9.lastlife.commands.RegisterCommands;
+import io.github.ninty9.lastlife.commands.RollLives;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,6 +26,7 @@ public class Initializer implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		LOGGER.info("Hello Fabric world!");
-		RegisterCommands.registerCommands();
+		CommandRegistrationCallback.EVENT.register(RollLives::register);
+		CommandRegistrationCallback.EVENT.register(GetLives::register);
 	}
 }

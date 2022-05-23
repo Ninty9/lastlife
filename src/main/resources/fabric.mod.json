@@ -27,9 +27,6 @@
   "entrypoints": {
     "main": [
       "io.github.ninty9.lastlife.Initializer"
-    ],
-    "cardinal-components": [
-      "io.github.ninty9.lastlife.Components"
     ]
   },
   "mixins": [

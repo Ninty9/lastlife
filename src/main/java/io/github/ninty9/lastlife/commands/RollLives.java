@@ -3,8 +3,8 @@ package io.github.ninty9.lastlife.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.github.ninty9.lastlife.Components;
-import net.minecraft.entity.player.PlayerEntity;
+import io.github.ninty9.lastlife.Initializer;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 
@@ -14,9 +14,8 @@ public class RollLives{
     }
 
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerEntity player = context.getSource().getPlayer();
-
-        Components.LIVES.get(player).generate(1, 4);
+        Initializer.LOGGER.info("aeiou");
+        context.getSource().getPlayer().damage(DamageSource.CRAMMING, 100);
         return 0;
     }
 }
