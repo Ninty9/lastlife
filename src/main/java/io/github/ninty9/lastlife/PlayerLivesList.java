@@ -59,9 +59,8 @@ public class PlayerLivesList {
     {
         try {
             playerLivesList.clear();
-            List<ServerPlayerEntity> playerList = new ArrayList<>();
-            PlayerLookup.all(Initializer.serverObject).addAll(playerList);
-            for (ServerPlayerEntity p : playerList)
+            Collection<ServerPlayerEntity> players = PlayerLookup.all(Initializer.serverObject);
+            for (ServerPlayerEntity p : players)
                 AddToList(new PlayerLives(p.getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives)));
         } catch (Exception ex)
         {
