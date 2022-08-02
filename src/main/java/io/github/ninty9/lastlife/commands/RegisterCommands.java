@@ -7,5 +7,6 @@ public class RegisterCommands {
     public static void registerCommands() {
         CommandRegistrationCallback.EVENT.register(RollLives::register);
         CommandRegistrationCallback.EVENT.register(GetLives::register);
+        CommandRegistrationCallback.EVENT.register(ResetLives::register);
     }
 }

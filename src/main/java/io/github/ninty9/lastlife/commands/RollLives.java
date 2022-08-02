@@ -25,7 +25,7 @@ public class RollLives{
 
 
     private static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerLives player = new PlayerLives(context.getSource().getPlayer().getUuid(), 7);
+       PlayerLives player = new PlayerLives(context.getSource().getPlayer().getUuid(), 7);
         PlayerLivesList.AddToList(player);
         return 0;
     }
