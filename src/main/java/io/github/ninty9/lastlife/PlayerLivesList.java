@@ -8,10 +8,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static io.github.ninty9.lastlife.Config.config;
 import static io.github.ninty9.lastlife.Initializer.livesPath;
@@ -27,7 +24,7 @@ public class PlayerLivesList {
                 playerLivesList.add(player);
         } else {
             for (PlayerLives p : playerLivesList) {
-                if (p.uuid == player.uuid) {
+                if (Objects.equals(p.uuid, player.uuid)) {
                     playerLivesList.set(playerLivesList.indexOf(p), player);
                     match = true;
                 }
@@ -52,19 +49,24 @@ public class PlayerLivesList {
         {
             ex.printStackTrace();
         }
-        Initializer.LOGGER.info(playerLivesList.toString());
         for (PlayerLives p: playerLivesList) {
-            Initializer.LOGGER.info(p.uuid.toString());
+            Initializer.LOGGER.info(p.uuid.toString() + p.lives);
         }
+        Initializer.LOGGER.info(playerLivesList.toString());
     }
 
     public static void RerollAll()
     {
-        playerLivesList.clear();
-        List<ServerPlayerEntity> playerList = new ArrayList<>();
-        PlayerLookup.all(Initializer.serverObject).addAll(playerList);
-        for (ServerPlayerEntity p: playerList)
-            AddToList(new PlayerLives(p.getUuid(),(int) (Math.random() * (config.maxlives - config.minlives) + config.minlives)));
+        try {
+            playerLivesList.clear();
+            List<ServerPlayerEntity> playerList = new ArrayList<>();
+            PlayerLookup.all(Initializer.serverObject).addAll(playerList);
+            for (ServerPlayerEntity p : playerList)
+                AddToList(new PlayerLives(p.getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives)));
+        } catch (Exception ex)
+        {
+            throw ex;
+        }
     }
 
     public static void ReadToLivesList()

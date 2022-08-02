@@ -13,7 +13,7 @@ import static io.github.ninty9.lastlife.Initializer.configPath;
 public class Config {
     public static Config config = new Config(2, 6);
 
-    int minlives, maxlives;
+    public int minlives, maxlives;
 
     public Config(int MinLives, int MaxLives) {
         this.minlives = MinLives;

@@ -8,5 +8,8 @@ public class RegisterCommands {
         CommandRegistrationCallback.EVENT.register(RollLives::register);
         CommandRegistrationCallback.EVENT.register(GetLives::register);
         CommandRegistrationCallback.EVENT.register(ResetLives::register);
+        CommandRegistrationCallback.EVENT.register(UpdateLives::register);
+
+        CommandRegistrationCallback.EVENT.register(UpdateConfig::register);
     }
 }

@@ -25,7 +25,7 @@ public class ResetLives {
     }
 
     public static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerLivesList.ReadToLivesList();
+        PlayerLivesList.RerollAll();
         return 0;
     }
 }

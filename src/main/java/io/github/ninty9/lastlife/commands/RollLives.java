@@ -16,6 +16,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 
 import static com.mojang.brigadier.builder.RequiredArgumentBuilder.argument;
+import static io.github.ninty9.lastlife.Config.config;
 
 public class RollLives{
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, boolean dedicated) {
@@ -25,7 +26,7 @@ public class RollLives{
 
 
     private static int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-       PlayerLives player = new PlayerLives(context.getSource().getPlayer().getUuid(), 7);
+       PlayerLives player = new PlayerLives(context.getSource().getPlayer().getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives));
         PlayerLivesList.AddToList(player);
         return 0;
     }
