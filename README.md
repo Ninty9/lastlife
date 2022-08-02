@@ -1,9 +1,11 @@
-# Fabric Example Mod
+# Last Life Mod
 
-## Setup
+## heads up
 
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+This mod is being made for a specific server, and this repo is public for what is basically an arg, dont expect any actual documentation or descriptive commit names
 
-## License
+----
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+Dont know why im putting stuff here, not like anyone's gonna read it anyways.
+uh.
+kinda just making this for whenever people come back, maybe we can have some fun or whatever.
