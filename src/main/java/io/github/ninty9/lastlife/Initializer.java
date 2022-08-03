@@ -3,9 +3,13 @@ package io.github.ninty9.lastlife;
 import com.mojang.brigadier.Command;
 import io.github.ninty9.lastlife.commands.RegisterCommands;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.GameModeCommand;
+import net.minecraft.util.ActionResult;
+import net.minecraft.world.GameMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static io.github.ninty9.lastlife.PlayerLivesList.ReadToLivesList;
+import static io.github.ninty9.lastlife.PlayerLivesList.playerLivesList;
 
 public class Initializer implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -38,6 +43,17 @@ public class Initializer implements ModInitializer {
 		LOGGER.info(livesPath.toString());
 		LoadLives();
 		LoadConfig();
+
+		ServerPlayerEvents.ALLOW_DEATH.register((player, damageSource, damageAmount) -> {
+			PlayerLivesList.DecreaseLivesByOne(player.getUuid());
+			return ActionResult.PASS.isAccepted();
+			//todo: update colour or whatever
+		});
+
+		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+			PlayerLivesList.UpdateGameMode(newPlayer);
+		});
+
 	}
 
 	private void LoadLives()

@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.ninty9.lastlife.Initializer;
 import io.github.ninty9.lastlife.PlayerLives;
+import io.github.ninty9.lastlife.PlayerLivesList;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
