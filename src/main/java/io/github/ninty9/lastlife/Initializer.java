@@ -5,11 +5,12 @@ import io.github.ninty9.lastlife.commands.RegisterCommands;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.mixin.event.lifecycle.PlayerManagerMixin;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.GameModeCommand;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.util.ActionResult;
-import net.minecraft.world.GameMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +18,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static io.github.ninty9.lastlife.PlayerLivesList.ReadToLivesList;
-import static io.github.ninty9.lastlife.PlayerLivesList.playerLivesList;
+import static io.github.ninty9.lastlife.Config.config;
+import static io.github.ninty9.lastlife.PlayerLivesList.*;
 
 public class Initializer implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -39,21 +40,37 @@ public class Initializer implements ModInitializer {
 		// Proceed with mild caution.
 		LOGGER.info("Hello Fabric world!");
 		RegisterCommands.registerCommands();
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> serverObject = server);
+
 		LOGGER.info(livesPath.toString());
 		LoadLives();
 		LoadConfig();
 
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			serverObject = server;
+			PlayerLivesList.SetTeamColors();
+		});
+
 		ServerPlayerEvents.ALLOW_DEATH.register((player, damageSource, damageAmount) -> {
-			PlayerLivesList.DecreaseLivesByOne(player.getUuid());
-			return ActionResult.PASS.isAccepted();
-			//todo: update colour or whatever
+			PlayerLivesList.RelativeChangeLives(player.getUuid(), -1);
+			return ActionResult.SUCCESS.shouldIncrementStat();
 		});
 
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-			PlayerLivesList.UpdateGameMode(newPlayer);
+			PlayerLivesList.UpdatePlayer(newPlayer);
+			//todo: add flavour text
 		});
 
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			if (IsPlayerOnList(handler.getPlayer())) {
+				UpdatePlayer(handler.getPlayer());
+			}
+			else {
+				if (config.rollOnJoin)
+				{
+					PlayerLivesList.RollPlayer(handler.getPlayer());
+				}
+			}
+		});
 	}
 
 	private void LoadLives()
@@ -80,17 +97,19 @@ public class Initializer implements ModInitializer {
 	{
 		File configFile = new File("D:\\code\\java\\lastlife\\run\\config\\lastlife\\config.json");
 		boolean result;
-		try
-		{
+		try {
 			configFile.getParentFile().mkdirs();
 			result = configFile.createNewFile();  //creates a new file
-			if(result)	// test if successfully created a new file
+			if (result)    // test if successfully created a new file
 			{
 				System.out.println("file created " + configFile.getCanonicalPath()); //returns the path string
+				config = new Config(2, 9, false);
 				Config.UpdateFile();
+			} else
+			{
+				System.out.println("File already exist at location: " + configFile.getCanonicalPath());
+				Config.ReadToConfig();
 			}
-			else
-				System.out.println("File already exist at location: "+configFile.getCanonicalPath());
 		}
 		catch (Exception e) {
 			e.printStackTrace(); } //prints exception if any

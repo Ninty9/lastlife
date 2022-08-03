@@ -11,13 +11,15 @@ import java.util.UUID;
 import static io.github.ninty9.lastlife.Initializer.configPath;
 
 public class Config {
-    public static Config config = new Config(2, 6);
+    public static Config config;
 
     public int minlives, maxlives;
+    public boolean rollOnJoin;
 
-    public Config(int MinLives, int MaxLives) {
+    public Config(int MinLives, int MaxLives, boolean RollOnJoin) {
         this.minlives = MinLives;
         this.maxlives = MaxLives;
+        this.rollOnJoin = RollOnJoin;
     }
     public static void UpdateFile()
     {
@@ -49,5 +51,10 @@ public class Config {
         {
             ex.printStackTrace();
         }
+    }
+
+    public static int GetRandomLife()
+    {
+        return (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives);
     }
 }
