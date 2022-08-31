@@ -76,7 +76,7 @@ public class PlayerLivesList {
     }
 
 
-    public static void UpdateFile()
+    private static void UpdateFile()
     {
         try {
             Gson gson = new Gson();
@@ -98,15 +98,10 @@ public class PlayerLivesList {
     {
         boolean match = false;
         Initializer.LOGGER.info( "adding " + playerLivesList.toString());
-        if(playerLivesList.isEmpty()) {
-                playerLivesList.add(player);
-        } else {
-            for (PlayerLives p : playerLivesList) {
-                if (Objects.equals(p.uuid, player.uuid)) {
-                    playerLivesList.set(playerLivesList.indexOf(p), player);
-                    match = true;
-                }
-
+        for (PlayerLives p : playerLivesList) {
+            if (Objects.equals(p.uuid, player.uuid)) {
+                playerLivesList.set(playerLivesList.indexOf(p), player);
+                match = true;
             }
             if(!match)
                 playerLivesList.add(player);

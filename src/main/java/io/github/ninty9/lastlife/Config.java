@@ -16,12 +16,15 @@ public class Config {
     public int minlives, maxlives;
     public boolean rollOnJoin;
 
-    public Config(int MinLives, int MaxLives, boolean RollOnJoin) {
+    public boolean sessionOn;
+
+    public Config(int MinLives, int MaxLives, boolean RollOnJoin, boolean SessionOn) {
         this.minlives = MinLives;
         this.maxlives = MaxLives;
         this.rollOnJoin = RollOnJoin;
+        this.sessionOn = SessionOn;
     }
-    public static void UpdateFile()
+    private static void UpdateFile()
     {
         try {
             Gson gson = new Gson();
@@ -34,6 +37,8 @@ public class Config {
             ex.printStackTrace();
         }
     }
+    public static void UpdateConfigFile() { UpdateFile(); }
+
     public static void ReadToConfig()
     {
         try {

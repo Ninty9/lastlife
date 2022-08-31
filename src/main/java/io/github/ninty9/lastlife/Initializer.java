@@ -44,6 +44,7 @@ public class Initializer implements ModInitializer {
 		LOGGER.info(livesPath.toString());
 		LoadLives();
 		LoadConfig();
+		LoadSession();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			serverObject = server;
@@ -70,6 +71,7 @@ public class Initializer implements ModInitializer {
 					PlayerLivesList.RollPlayer(handler.getPlayer());
 				}
 			}
+			Sessions.AddToJoinList(handler.getPlayer().getUuid());
 		});
 	}
 
@@ -103,12 +105,32 @@ public class Initializer implements ModInitializer {
 			if (result)    // test if successfully created a new file
 			{
 				System.out.println("file created " + configFile.getCanonicalPath()); //returns the path string
-				config = new Config(2, 9, false);
-				Config.UpdateFile();
+				config = new Config(2, 9, false, false);
+				Config.UpdateConfigFile();
 			} else
 			{
 				System.out.println("File already exist at location: " + configFile.getCanonicalPath());
 				Config.ReadToConfig();
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace(); } //prints exception if any
+	}
+
+	private void LoadSession()
+	{
+		File sessionFile = new File("D:\\code\\java\\lastlife\\run\\config\\lastlife\\session.json");
+		boolean result;
+		try
+		{
+			sessionFile.getParentFile().mkdirs();
+			result = sessionFile.createNewFile();  //creates a new file
+			if(result)      // test if successfully created a new file
+				System.out.println("file created "+sessionFile.getCanonicalPath()); //returns the path string
+			else
+			{
+				System.out.println("File already exist at location: " + sessionFile.getCanonicalPath());
+				ReadToLivesList();
 			}
 		}
 		catch (Exception e) {
