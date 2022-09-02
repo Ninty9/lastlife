@@ -18,6 +18,8 @@ public class Config {
 
     public boolean sessionOn;
 
+
+
     public Config(int MinLives, int MaxLives, boolean RollOnJoin, boolean SessionOn) {
         this.minlives = MinLives;
         this.maxlives = MaxLives;

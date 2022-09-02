@@ -6,10 +6,8 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.mixin.event.lifecycle.PlayerManagerMixin;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
 import net.minecraft.util.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +29,8 @@ public class Initializer implements ModInitializer {
 	};
 	public static final Path livesPath = (Path) Paths.get(FabricLoader.getInstance().getConfigDir().toString() + "/lastlife" + "/players.json");
 	public static final Path configPath = (Path) Paths.get(FabricLoader.getInstance().getConfigDir().toString() + "/lastlife" + "/config.json");
+	public static final Path sessionPath = (Path) Paths.get(FabricLoader.getInstance().getConfigDir().toString() + "/lastlife" + "/session.json");
+
 	public static MinecraftServer serverObject;
 
 	@Override
@@ -71,19 +71,19 @@ public class Initializer implements ModInitializer {
 					PlayerLivesList.RollPlayer(handler.getPlayer());
 				}
 			}
-			Sessions.AddToJoinList(handler.getPlayer().getUuid());
+			Sessions.addToJoinList(handler.getPlayer().getUuid());
 		});
 	}
 
 	private void LoadLives()
 	{
 		File livesFile = new File("D:\\code\\java\\lastlife\\run\\config\\lastlife\\players.json");
-		boolean result;
+		boolean livesResult;
 		try
 		{
 			livesFile.getParentFile().mkdirs();
-			result = livesFile.createNewFile();  //creates a new file
-			if(result)      // test if successfully created a new file
+			livesResult = livesFile.createNewFile();  //creates a new file
+			if(livesResult)      // test if successfully created a new file
 				System.out.println("file created "+livesFile.getCanonicalPath()); //returns the path string
 			else
 			{
@@ -91,18 +91,18 @@ public class Initializer implements ModInitializer {
 				ReadToLivesList();
 			}
 		}
-		catch (Exception e) {
-			e.printStackTrace(); } //prints exception if any
+		catch (Exception e) { e.printStackTrace(); } //prints exception if any
 	}
 
 	private void LoadConfig()
 	{
 		File configFile = new File("D:\\code\\java\\lastlife\\run\\config\\lastlife\\config.json");
-		boolean result;
-		try {
+		boolean configResult;
+		try
+		{
 			configFile.getParentFile().mkdirs();
-			result = configFile.createNewFile();  //creates a new file
-			if (result)    // test if successfully created a new file
+			configResult = configFile.createNewFile();  //creates a new file
+			if (configResult)    // test if successfully created a new file
 			{
 				System.out.println("file created " + configFile.getCanonicalPath()); //returns the path string
 				config = new Config(2, 9, false, false);
@@ -113,8 +113,7 @@ public class Initializer implements ModInitializer {
 				Config.ReadToConfig();
 			}
 		}
-		catch (Exception e) {
-			e.printStackTrace(); } //prints exception if any
+		catch (Exception e) { e.printStackTrace(); } //prints exception if any
 	}
 
 	private void LoadSession()
@@ -133,7 +132,6 @@ public class Initializer implements ModInitializer {
 				ReadToLivesList();
 			}
 		}
-		catch (Exception e) {
-			e.printStackTrace(); } //prints exception if any
+		catch (Exception e) { e.printStackTrace(); } //prints exception if any
 	}
 }
