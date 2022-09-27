@@ -96,21 +96,36 @@ public class PlayerLivesList {
 
     public static void AddToList(PlayerLives player)
     {
-        boolean match = false;
-        Initializer.LOGGER.info( "adding " + playerLivesList.toString());
-        if(playerLivesList.isEmpty()) {
-            playerLivesList.add(player);
-        } else {
-            for (PlayerLives p : playerLivesList) {
-                if (Objects.equals(p.uuid, player.uuid)) {
-                    playerLivesList.set(playerLivesList.indexOf(p), player);
-                    match = true;
+        try
+        {
+            boolean match = false;
+            Initializer.LOGGER.info("adeding " + playerLivesList.toString());
+            LOGGER.info("e");
+            if (playerLivesList.isEmpty()) {
+                playerLivesList.add(player);
+                LOGGER.info("test2");
+            } else {
+                for (PlayerLives p : playerLivesList) {
+                    if (Objects.equals(p.uuid, player.uuid)) {
+                        playerLivesList.set(playerLivesList.indexOf(p), player);
+                        match = true;
+                        LOGGER.info("test3");
+                    }
                 }
-                if (!match)
+                if (!match) {
                     playerLivesList.add(player);
+                    LOGGER.info("test1");
+                }
             }
+            UpdateFile();
         }
-        UpdateFile();
+        catch (ConcurrentModificationException e) {
+            LOGGER.info(e.getMessage());
+            LOGGER.info(e.toString());
+            LOGGER.error(String.valueOf(e));
+            e.printStackTrace();
+        throw e;
+        }
     }
 
     public static void RerollAll()

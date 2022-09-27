@@ -14,14 +14,6 @@ public class Sessions {
     //if a player on the list hasn't connected by the time the session ends, remove a life.
     public static List<UUID> playerJoinList = new ArrayList<>();
 
-    /*
-     * todo:
-     *  when session ends, subtract one from every player on the lives list but not on the session list
-     */
-
-    //currently, shits fuckin no worky motherfucker
-    //help
-
     public static void addToJoinList(UUID player)
     {
         Initializer.LOGGER.info(player.toString());
@@ -35,9 +27,9 @@ public class Sessions {
                         playerJoinList.set(playerJoinList.indexOf(u), player);
                         match = true;
                     }
-                    if (!match)
-                        playerJoinList.add(player);
                 }
+                if (!match)
+                    playerJoinList.add(player);
             }
         }
         updateFile();
@@ -64,6 +56,8 @@ public class Sessions {
                 PlayerLivesList.RelativeChangeLives(p.uuid, -1);
             }
         }
+        playerJoinList.clear();
+        updateFile();
     }
 
     private static void updateFile()

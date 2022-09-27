@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -77,7 +78,7 @@ public class Initializer implements ModInitializer {
 
 	private void LoadLives()
 	{
-		File livesFile = new File("D:\\code\\java\\lastlife\\run\\config\\lastlife\\players.json");
+		File livesFile = new File(FabricLoader.getInstance().getConfigDir().toString() + "lastlife\\players.json");
 		boolean livesResult;
 		try
 		{
@@ -91,12 +92,12 @@ public class Initializer implements ModInitializer {
 				ReadToLivesList();
 			}
 		}
-		catch (Exception e) { e.printStackTrace(); } //prints exception if any
+		catch(IOException ignored) {}
 	}
 
 	private void LoadConfig()
 	{
-		File configFile = new File("D:\\code\\java\\lastlife\\run\\config\\lastlife\\config.json");
+		File configFile = new File(FabricLoader.getInstance().getConfigDir().toString() + "lastlife\\config.json");
 		boolean configResult;
 		try
 		{
@@ -113,12 +114,12 @@ public class Initializer implements ModInitializer {
 				Config.ReadToConfig();
 			}
 		}
-		catch (Exception e) { e.printStackTrace(); } //prints exception if any
+		catch(IOException ignored) {}
 	}
 
 	private void LoadSession()
 	{
-		File sessionFile = new File("D:\\code\\java\\lastlife\\run\\config\\lastlife\\session.json");
+		File sessionFile = new File(FabricLoader.getInstance().getConfigDir().toString() + "lastlife\\session.json");
 		boolean result;
 		try
 		{
@@ -132,6 +133,6 @@ public class Initializer implements ModInitializer {
 				ReadToLivesList();
 			}
 		}
-		catch (Exception e) { e.printStackTrace(); } //prints exception if any
+		catch(IOException ignored) {}
 	}
 }

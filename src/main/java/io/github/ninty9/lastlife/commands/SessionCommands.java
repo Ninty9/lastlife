@@ -64,6 +64,7 @@ public class SessionCommands {
             config.sessionOn = false;
             Config.UpdateConfigFile();
             //config stop method in file to handle lives processing
+            Sessions.endSession();
             return 1;
         }
         return 0;
