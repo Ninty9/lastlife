@@ -18,13 +18,16 @@ public class Config {
 
     public boolean sessionOn;
 
+    public UUID boogeyman;
 
 
-    public Config(int MinLives, int MaxLives, boolean RollOnJoin, boolean SessionOn) {
+
+    public Config(int MinLives, int MaxLives, boolean RollOnJoin, boolean SessionOn, UUID Boogeyman) {
         this.minlives = MinLives;
         this.maxlives = MaxLives;
         this.rollOnJoin = RollOnJoin;
         this.sessionOn = SessionOn;
+        this.boogeyman = Boogeyman;
     }
     private static void UpdateFile()
     {

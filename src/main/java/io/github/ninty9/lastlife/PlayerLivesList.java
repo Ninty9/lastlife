@@ -1,10 +1,14 @@
 package io.github.ninty9.lastlife;
 
 import com.google.gson.Gson;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.minecraft.command.CommandException;
+import net.minecraft.network.Packet;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.GameMode;
 
@@ -13,6 +17,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.Function;
 
 import static io.github.ninty9.lastlife.Config.config;
 import static io.github.ninty9.lastlife.Initializer.*;
@@ -103,19 +108,19 @@ public class PlayerLivesList {
             LOGGER.info("e");
             if (playerLivesList.isEmpty()) {
                 playerLivesList.add(player);
-                LOGGER.info("test2");
             } else {
                 for (PlayerLives p : playerLivesList) {
                     if (Objects.equals(p.uuid, player.uuid)) {
                         playerLivesList.set(playerLivesList.indexOf(p), player);
                         match = true;
-                        LOGGER.info("test3");
                     }
                 }
                 if (!match) {
                     playerLivesList.add(player);
-                    LOGGER.info("test1");
                 }
+            }
+            if(serverObject != null){
+                UpdatePlayer(player.uuid, false);
             }
             UpdateFile();
         }
@@ -128,12 +133,14 @@ public class PlayerLivesList {
         }
     }
 
-    public static void RerollAll()
+    public static void ReRollAll()
     {
         playerLivesList.clear();
         Collection<ServerPlayerEntity> players = PlayerLookup.all(Initializer.serverObject);
-        for (ServerPlayerEntity p : players)
+        for (ServerPlayerEntity p : players) {
             AddToList(new PlayerLives(p.getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives)));
+            DisplayLivesMessage(p, false);
+        }
     }
 
     public static void ReadToLivesList()
@@ -158,7 +165,7 @@ public class PlayerLivesList {
                 if (Objects.equals(p.uuid, uuid)) {
                     playerLivesList.get(playerLivesList.indexOf(p)).lives = lives;
                     UpdateFile();
-                    UpdatePlayer(uuid);
+                    UpdatePlayer(uuid, false);
                 }
             }
         }
@@ -177,7 +184,7 @@ public class PlayerLivesList {
                 if (p.lives > 0) {
                     playerLivesList.get(playerLivesList.indexOf(p)).lives += lives;
                     UpdateFile();
-                    UpdatePlayer(uuid);
+                    UpdatePlayer(uuid, false);
                 }
             }
         }
@@ -187,51 +194,88 @@ public class PlayerLivesList {
     {
         PlayerLives playerLives = new PlayerLives(player.getUuid(), Config.GetRandomLife());
         PlayerLivesList.AddToList(playerLives);
-        UpdatePlayer(player);
+        UpdatePlayer(player, false);
     }
 
     public static void RollPlayer(UUID uuid)
     {
-        PlayerLives playerLives = new PlayerLives(uuid, Config.GetRandomLife());
-        PlayerLivesList.AddToList(playerLives);
-        UpdatePlayer(uuid);
+        ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
+        if (player != null){
+            RollPlayer(player);
+        }
     }
 
-    public static int GetLives(UUID uuid) {
-        for (PlayerLives p: playerLivesList)
-            if (Objects.equals(p.uuid, uuid))
-                return p.lives;
-        return 0;
-    }
-    public static int Getlives(ServerPlayerEntity player) {
+    public static int GetLives(ServerPlayerEntity player) {
         for (PlayerLives p: playerLivesList)
             if (Objects.equals(p.uuid, player.getUuid()))
                 return p.lives;
         return 0;
     }
 
-    public static void UpdatePlayer(ServerPlayerEntity player)
-    {
-        if(Getlives(player) == 0)
+    public static int GetLives(UUID uuid) {
+        ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
+        return GetLives(player);
+    }
+
+
+    public static void UpdatePlayer(ServerPlayerEntity player, boolean death){
+        if(GetLives(player) == 0)
             player.changeGameMode(GameMode.SPECTATOR);
         else
             player.changeGameMode(GameMode.SURVIVAL);
 
         serverObject.getScoreboard().clearPlayerTeam(player.getEntityName());
-        serverObject.getScoreboard().addPlayerToTeam(player.getEntityName(), GetTeam(Getlives(player)));
+        serverObject.getScoreboard().addPlayerToTeam(player.getEntityName(), GetTeam(GetLives(player)));
     }
 
-    public static void UpdatePlayer(UUID uuid)
+    public static void UpdatePlayer(UUID uuid, boolean death)
     {
         ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
-        if(player != null) {
-            if (Getlives(player) == 0)
-                player.changeGameMode(GameMode.SPECTATOR);
-            else
-                player.changeGameMode(GameMode.SURVIVAL);
+        UpdatePlayer(player, death);
+    }
 
-            serverObject.getScoreboard().clearPlayerTeam(player.getEntityName());
-            serverObject.getScoreboard().addPlayerToTeam(player.getEntityName(), GetTeam(Getlives(player)));
+    public static void DisplayLivesMessage(ServerPlayerEntity player, boolean death) {
+        int playerLives = GetLives(player);
+        Function<Text, Packet<?>> titleConstructor = TitleS2CPacket::new;
+
+        LiteralText text = new LiteralText(String.valueOf(playerLives));
+        text.setStyle(text.getStyle().withColor(GetTeam(playerLives).getColor()));
+        try {
+            player.networkHandler.sendPacket(titleConstructor.apply(Texts.parse(null, text, null, 0)) );
+        } catch (CommandSyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        if(death){
+            String subtitle;
+            TextColor subtitleColor;
+            switch (playerLives) {
+                case 0 -> {
+                    subtitle = "You are dead, for good this time.";
+                    subtitleColor = TextColor.parse("gray");
+                }
+                case 1 -> {
+                    subtitle = "This is your last life. Go have some fun.";
+                    subtitleColor = TextColor.parse("dark_red");
+                }
+                case 2 -> {
+                    subtitle = "You died. Almost there.";
+                    subtitleColor = TextColor.parse("yellow");
+                }
+                default -> {
+                    subtitle = "You died.";
+                    subtitleColor = TextColor.parse("white");
+                }
+            }
+
+            LiteralText subText = new LiteralText(subtitle);
+            subText.setStyle(subText.getStyle().withColor(subtitleColor));
+            Function<Text, Packet<?>> subtitleConstructor = SubtitleS2CPacket::new;
+            try {
+                player.networkHandler.sendPacket(subtitleConstructor.apply(Texts.parse(null, subText, null, 0)) );
+            } catch (CommandSyntaxException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -247,11 +291,7 @@ public class PlayerLivesList {
 
     public static boolean IsPlayerOnList(UUID uuid)
     {
-        for (PlayerLives p : playerLivesList)
-        {
-            if(Objects.equals(p.uuid, uuid))
-                return true;
-        }
-        return false;
+        ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
+        return IsPlayerOnList(player);
     }
 }

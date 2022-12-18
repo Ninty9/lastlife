@@ -30,6 +30,7 @@
     ]
   },
   "mixins": [
+    "lastlife.mixins.json"
   ],
 
   "depends": {

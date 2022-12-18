@@ -5,7 +5,6 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
-import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.ninty9.lastlife.Initializer;
 import io.github.ninty9.lastlife.PlayerLives;
@@ -17,11 +16,12 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.Objects;
-import java.util.logging.Logger;
 
 import static io.github.ninty9.lastlife.Config.config;
+import static io.github.ninty9.lastlife.PlayerLivesList.DisplayLivesMessage;
 import static io.github.ninty9.lastlife.PlayerLivesList.playerLivesList;
 
 public class LivesCommands {
@@ -34,11 +34,19 @@ public class LivesCommands {
 
         LiteralCommandNode<ServerCommandSource> rollNode = CommandManager
                 .literal("roll")
+                .build();
+
+        ArgumentCommandNode<ServerCommandSource, EntitySelector> playerRollNode = CommandManager
+                .argument("player", EntityArgumentType.player())
                 .executes(LivesCommands::roll)
                 .build();
 
         LiteralCommandNode<ServerCommandSource> getNode = CommandManager
                 .literal("get")
+                .build();
+
+        ArgumentCommandNode<ServerCommandSource, EntitySelector> playerGetNode = CommandManager
+                .argument("player", EntityArgumentType.player())
                 .executes(LivesCommands::get)
                 .build();
 
@@ -67,7 +75,9 @@ public class LivesCommands {
 
         dispatcher.getRoot().addChild(livesNode);
         livesNode.addChild(rollNode);
+            rollNode.addChild(playerRollNode);
         livesNode.addChild(getNode);
+            getNode.addChild(playerGetNode);
         livesNode.addChild(changeNode);
             changeNode.addChild(playerArgNode);
                 playerArgNode.addChild(livesIntArgNode);
@@ -78,26 +88,32 @@ public class LivesCommands {
 
 
     private static int roll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerLives player = new PlayerLives(context.getSource().getPlayer().getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives));
-        PlayerLivesList.AddToList(player);
+        ServerPlayerEntity player = context.getArgument("player", EntitySelector.class).getPlayer(context.getSource());
+        if (PlayerLivesList.IsPlayerOnList(player.getUuid())) {
+            PlayerLivesList.ChangeLives(player.getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives));
+        } else {
+            PlayerLives playerLife = new PlayerLives(player.getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives));
+            PlayerLivesList.AddToList(playerLife);
+        }
+        player.sendMessage(Text.of("Rolling lives..."), false);
+        DisplayLivesMessage(player, false);
         return 1;
     }
 
     private static int get(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerEntity player = context.getSource().getPlayer();
+        PlayerEntity player = context.getArgument("player", EntitySelector.class).getPlayer(context.getSource());
         for (PlayerLives p: playerLivesList)
-        {
-            Initializer.LOGGER.info("current uuid: " + p.uuid.toString());
-            Initializer.LOGGER.info("player uuid: " + player.getUuid().toString());
             if(Objects.equals(p.uuid, player.getUuid()))
-                player.sendMessage(new LiteralText(Integer.toString(p.lives)), true);
-        }
+                player.sendMessage(new LiteralText(Integer.toString(p.lives)), false);
         return 1;
     }
 
     private static int change (CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerLivesList.ChangeLives(context.getArgument("player", EntitySelector.class).getPlayer(context.getSource()).getUuid(), context.getArgument("lives", int.class));
+        ServerPlayerEntity player = context.getArgument("player", EntitySelector.class).getPlayer(context.getSource());
+        PlayerLivesList.ChangeLives(player.getUuid(), context.getArgument("lives", int.class));
+        DisplayLivesMessage(player, false);
         return 1;
+
     }
 
     private static int update(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -106,7 +122,7 @@ public class LivesCommands {
     }
 
     private static int reset(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerLivesList.RerollAll();
+        PlayerLivesList.ReRollAll();
         return 1;
     }
 

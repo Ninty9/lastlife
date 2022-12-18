@@ -3,11 +3,16 @@ package io.github.ninty9.lastlife;
 import com.google.gson.Gson;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.util.*;
 
+import static io.github.ninty9.lastlife.Config.UpdateConfigFile;
 import static io.github.ninty9.lastlife.Config.config;
+import static io.github.ninty9.lastlife.Initializer.configPath;
+import static io.github.ninty9.lastlife.Initializer.sessionPath;
 
 public class Sessions {
     //sessions keep track of all the players
@@ -38,6 +43,8 @@ public class Sessions {
     public static void clearSession() {
         playerJoinList.clear();
         updateFile();
+        config.boogeyman = null;
+        UpdateConfigFile();
     }
 
     public static void endSession() {
@@ -58,15 +65,39 @@ public class Sessions {
         }
         playerJoinList.clear();
         updateFile();
+        if (config.boogeyman != null)
+        {
+            PlayerLivesList.RelativeChangeLives(config.boogeyman, -1);
+            config.boogeyman = null;
+        }
     }
 
     private static void updateFile()
     {
         try {
             Gson gson = new Gson();
-            Writer writer = Files.newBufferedWriter(Initializer.sessionPath);
+            Writer writer = Files.newBufferedWriter(sessionPath);
             gson.toJson(playerJoinList, writer);
             writer.close();
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void ReadToSession()
+    {
+        try {
+
+            try {
+                Gson gson = new Gson();
+                Reader reader = Files.newBufferedReader(sessionPath);
+                config = gson.fromJson(reader, Config.class);
+                reader.close();
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e); }
         }
         catch (Exception ex)
         {
