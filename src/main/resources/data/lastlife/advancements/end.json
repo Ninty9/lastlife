@@ -4,7 +4,7 @@
       "item": "minecraft:end_stone"
     },
     "title": {
-      "text": "... You where not supposed to be here.",
+      "text": "... You were not supposed to be here.",
       "color": "dark_purple"
     },
     "description": {
@@ -14,7 +14,7 @@
     "frame": "task",
     "show_toast": true,
     "announce_to_chat": true,
-    "hidden": false
+    "hidden": true
   },
   "parent": "lastlife:nether",
   "criteria": {
