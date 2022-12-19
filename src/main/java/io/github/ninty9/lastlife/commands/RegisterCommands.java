@@ -8,5 +8,7 @@ public class RegisterCommands {
         CommandRegistrationCallback.EVENT.register(SessionCommands::register);
         CommandRegistrationCallback.EVENT.register(LivesCommands::register);
         CommandRegistrationCallback.EVENT.register(ConfigCommands::register);
+        CommandRegistrationCallback.EVENT.register(CommandConfirm::register);
+
     }
 }

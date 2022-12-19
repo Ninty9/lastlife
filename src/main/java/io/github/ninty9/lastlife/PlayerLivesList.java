@@ -19,25 +19,24 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Function;
 
-import static io.github.ninty9.lastlife.Config.config;
 import static io.github.ninty9.lastlife.Initializer.*;
 
 public class PlayerLivesList {
     public static List<PlayerLives> playerLivesList = new ArrayList<>();
 
-    public static Team life0;
-    public static Team life1;
-    public static Team life2;
-    public static Team life3;
-    public static Team life4;
-    public static Team life5;
-    public static Team life6;
-    public static Team life7;
-    public static Team life8;
-    public static Team life9;
+    private static Team life0;
+    private static Team life1;
+    private static Team life2;
+    private static Team life3;
+    private static Team life4;
+    private static Team life5;
+    private static Team life6;
+    private static Team life7;
+    private static Team life8;
+    private static Team life9;
 
-    public static void SetTeamColors()
-    {
+    public static void SetTeamColors() {
+        //todo:check if these teams exist
         life0 = serverObject.getScoreboard().addTeam("0");
         life1 = serverObject.getScoreboard().addTeam("1");
         life2 = serverObject.getScoreboard().addTeam("2");
@@ -63,8 +62,7 @@ public class PlayerLivesList {
 
     }
 
-    public static Team GetTeam(int in)
-    {
+    public static Team GetTeam(int in) {
         return switch (in) {
             case 0 -> life0;
             case 1 -> life1;
@@ -81,8 +79,7 @@ public class PlayerLivesList {
     }
 
 
-    private static void UpdateFile()
-    {
+    private static void UpdateFile() {
         try {
             Gson gson = new Gson();
             Writer writer = Files.newBufferedWriter(Initializer.livesPath);
@@ -93,18 +90,12 @@ public class PlayerLivesList {
         {
             ex.printStackTrace();
         }
-        for (PlayerLives p: playerLivesList) {
-            Initializer.LOGGER.info(p.uuid.toString() + p.lives);
-        }
-        Initializer.LOGGER.info(playerLivesList.toString());
     }
 
-    public static void AddToList(PlayerLives player)
-    {
+    public static void AddToList(PlayerLives player) {
         try
         {
             boolean match = false;
-            Initializer.LOGGER.info("adeding " + playerLivesList.toString());
             LOGGER.info("e");
             if (playerLivesList.isEmpty()) {
                 playerLivesList.add(player);
@@ -120,7 +111,7 @@ public class PlayerLivesList {
                 }
             }
             if(serverObject != null){
-                UpdatePlayer(player.uuid, false);
+                UpdatePlayer(player.uuid);
             }
             UpdateFile();
         }
@@ -133,26 +124,29 @@ public class PlayerLivesList {
         }
     }
 
-    public static void ReRollAll()
-    {
+    public static void ReRollAll() {
         playerLivesList.clear();
         Collection<ServerPlayerEntity> players = PlayerLookup.all(Initializer.serverObject);
         for (ServerPlayerEntity p : players) {
-            AddToList(new PlayerLives(p.getUuid(), (int) (Math.random() * (config.maxlives - config.minlives) + config.minlives)));
-            DisplayLivesMessage(p, false);
+            if(!Config.IsExcluded(p)){
+                AddToList(new PlayerLives(p.getUuid(), Config.GetRandomLife()));
+                p.sendMessage(new LiteralText("Rolling lives..."), false);
+                DisplayLivesMessage(p, false);
+            }
         }
     }
 
-    public static void ReadToLivesList()
-    {
+    public static void ReadToLivesList() {
         try {
             Gson gson = new Gson();
             Reader reader = Files.newBufferedReader(livesPath);
             PlayerLives[] tempList = gson.fromJson(reader, PlayerLives[].class);
             reader.close();
             playerLivesList.clear();
-            for (PlayerLives p: tempList)
+            for (PlayerLives p: tempList) {
                 AddToList(p);
+                UpdatePlayer(p.uuid);
+            }
             Initializer.LOGGER.info(playerLivesList.toString());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -165,7 +159,7 @@ public class PlayerLivesList {
                 if (Objects.equals(p.uuid, uuid)) {
                     playerLivesList.get(playerLivesList.indexOf(p)).lives = lives;
                     UpdateFile();
-                    UpdatePlayer(uuid, false);
+                    UpdatePlayer(uuid);
                 }
             }
         }
@@ -184,21 +178,19 @@ public class PlayerLivesList {
                 if (p.lives > 0) {
                     playerLivesList.get(playerLivesList.indexOf(p)).lives += lives;
                     UpdateFile();
-                    UpdatePlayer(uuid, false);
+                    UpdatePlayer(uuid);
                 }
             }
         }
     }
 
-    public static void RollPlayer(ServerPlayerEntity player)
-    {
+    public static void RollPlayer(ServerPlayerEntity player) {
         PlayerLives playerLives = new PlayerLives(player.getUuid(), Config.GetRandomLife());
         PlayerLivesList.AddToList(playerLives);
-        UpdatePlayer(player, false);
+        UpdatePlayer(player);
     }
 
-    public static void RollPlayer(UUID uuid)
-    {
+    public static void RollPlayer(UUID uuid) {
         ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
         if (player != null){
             RollPlayer(player);
@@ -218,20 +210,25 @@ public class PlayerLivesList {
     }
 
 
-    public static void UpdatePlayer(ServerPlayerEntity player, boolean death){
-        if(GetLives(player) == 0)
-            player.changeGameMode(GameMode.SPECTATOR);
-        else
-            player.changeGameMode(GameMode.SURVIVAL);
+    public static void UpdatePlayer(ServerPlayerEntity player){
+        if(Config.IsExcluded(player)){
+            if (GetLives(player) == 0)
+                player.changeGameMode(GameMode.SPECTATOR);
+            else
+                player.changeGameMode(GameMode.SURVIVAL);
+        }
 
         serverObject.getScoreboard().clearPlayerTeam(player.getEntityName());
         serverObject.getScoreboard().addPlayerToTeam(player.getEntityName(), GetTeam(GetLives(player)));
     }
 
-    public static void UpdatePlayer(UUID uuid, boolean death)
+    public static void UpdatePlayer(UUID uuid)
     {
-        ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
-        UpdatePlayer(player, death);
+        if(serverObject != null) {
+            ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
+            if(player != null)
+                UpdatePlayer(player);
+        }
     }
 
     public static void DisplayLivesMessage(ServerPlayerEntity player, boolean death) {
@@ -293,5 +290,17 @@ public class PlayerLivesList {
     {
         ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
         return IsPlayerOnList(player);
+    }
+
+    public static void ClearList() {
+        playerLivesList.clear();
+        UpdateFile();
+    }
+
+    public static boolean HasDecay(ServerPlayerEntity player) {
+        for (PlayerLives p : playerLivesList)
+            if (Objects.equals(p.uuid, player.getUuid()))
+                return p.hasDecay;
+        return false;
     }
 }

@@ -1,5 +1,6 @@
 package io.github.ninty9.lastlife;
 
+import com.google.gson.Gson;
 import io.github.ninty9.lastlife.commands.RegisterCommands;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
@@ -9,14 +10,18 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.LiteralText;
 import net.minecraft.util.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import static io.github.ninty9.lastlife.Config.*;
@@ -39,13 +44,12 @@ public class Initializer implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-		LOGGER.info("Hello Fabric world!");
-		RegisterCommands.registerCommands();
 
-		LOGGER.info(livesPath.toString());
 		LoadLives();
 		LoadConfig();
 		LoadSession();
+
+		RegisterCommands.registerCommands();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			serverObject = server;
@@ -53,12 +57,13 @@ public class Initializer implements ModInitializer {
 		});
 
 		ServerPlayerEvents.ALLOW_DEATH.register((player, damageSource, damageAmount) -> {
-			PlayerLivesList.RelativeChangeLives(player.getUuid(), -1);
+			if(!IsExcluded(player))
+				PlayerLivesList.RelativeChangeLives(player.getUuid(), -1);
 			return ActionResult.SUCCESS.shouldIncrementStat();
 		});
 
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-			PlayerLivesList.UpdatePlayer(newPlayer, true);
+			PlayerLivesList.UpdatePlayer(newPlayer);
 			DisplayLivesMessage(newPlayer, true);
 		});
 
@@ -66,9 +71,9 @@ public class Initializer implements ModInitializer {
 			if (
 					killedEntity instanceof ServerPlayerEntity &&
 							entity instanceof ServerPlayerEntity killer &&
-							Objects.equals(killer.getUuid(), config.boogeyman)
+							Objects.equals(killer.getUuid(), Config.getBoogeyman())
 			) {
-				config.boogeyman = null;
+				Config.clearBoogeyman();
 				UpdateConfigFile();
 			}
 
@@ -77,13 +82,16 @@ public class Initializer implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ServerPlayerEntity player = handler.getPlayer();
 			if (IsPlayerOnList(player)) {
-				UpdatePlayer(player, false);
+				UpdatePlayer(player);
 			} else {
-				if (config.rollOnJoin) {
+				if (Config.isRollOnJoin()) {
 					PlayerLivesList.RollPlayer(player);
-					DisplayLivesMessage(player, false);
 				}
 			}
+			DisplayLivesMessage(player, false);
+			if(HasDecay(player))
+				player.sendMessage(new LiteralText("You missed a session, so your lives went down while you where away."), false);
+
 			Sessions.addToJoinList(player.getUuid());
 		});
 	}
@@ -115,15 +123,29 @@ public class Initializer implements ModInitializer {
 		boolean result;
 		try
 		{
-			file.getParentFile().mkdirs();
-			result = file.createNewFile();  //creates a new file
-			if(result)      // test if successfully created a new file
-			{
-				System.out.println("file created " + file.getCanonicalPath()); //returns the path string
-				if (isConfig)
+			if(!file.getParentFile().exists()) {
+				boolean ignoreMkdirs = file.getParentFile().mkdirs();
+			}
+
+			if(!file.exists()){
+				result = file.createNewFile();  //creates a new file
+				if (result)      // test if successfully created a new file
 				{
-					config = new Config(2, 9, false, false, null);
-					Config.UpdateConfigFile();
+					if (isConfig) {
+						Config newConfig = new Config(2, 9, false, false, null, new ArrayList<>(), null);
+						try {
+							Gson gson = new Gson();
+							Writer writer = Files.newBufferedWriter(configPath);
+							gson.toJson(newConfig, writer);
+							setConfig(newConfig);
+							writer.close();
+						}
+						catch (Exception ex)
+						{
+							ex.printStackTrace();
+						}
+						Config.UpdateConfigFile();
+					}
 				}
 			}
 		}
