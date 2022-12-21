@@ -18,7 +18,6 @@ import java.util.*;
 
 import static io.github.ninty9.lastlife.Config.UpdateConfigFile;
 import static io.github.ninty9.lastlife.Config.isSessionOn;
-import static io.github.ninty9.lastlife.Initializer.LOGGER;
 import static io.github.ninty9.lastlife.Initializer.serverObject;
 
 public class SessionCommands {
@@ -145,7 +144,6 @@ public class SessionCommands {
         //sets a random boogeyman, with option to add an admin to not get picked
 
         ServerPlayerEntity sender = context.getSource().getPlayer();
-        Initializer.LOGGER.info(PlayerLivesList.playerLivesList.toString());
 
         if (context.getNodes().size() == 3) {
             ServerPlayerEntity boogey = context.getArgument("boogey", EntitySelector.class).getPlayer(context.getSource());
@@ -200,14 +198,11 @@ public class SessionCommands {
                     UpdateConfigFile();
                     return 1;
                 } else {
-                    //todo: remove these logs
-                    Initializer.LOGGER.info(PlayerLivesList.playerLivesList.toString());
                     return boogeyExistsConfirm(sender, boogey, false);
                 }
             }
             sender.sendMessage(new LiteralText("There are no valid players to assign boogeyman to."), false);
         } catch (Exception e) {
-            LOGGER.error(e.getMessage());
             e.printStackTrace();
         }
         return 0;

@@ -93,7 +93,6 @@ public class CommandConfirm {
             }
             case "sessionBoogeyKnown" -> {
                 if (confirm.target != null) {
-                    Initializer.LOGGER.info(PlayerLivesList.playerLivesList.toString());
                     Config.setBoogeyman(confirm.target);
                     sender.sendMessage(new LiteralText(confirm.target.getEntityName() + " has been set as boogeyman."), false);
                     Config.sendTitle(confirm.target, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));

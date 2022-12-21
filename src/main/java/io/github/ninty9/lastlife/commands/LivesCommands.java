@@ -7,7 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.ninty9.lastlife.Config;
-import io.github.ninty9.lastlife.Initializer;
 import io.github.ninty9.lastlife.PlayerLives;
 import io.github.ninty9.lastlife.PlayerLivesList;
 import net.minecraft.command.EntitySelector;
@@ -125,7 +124,6 @@ public class LivesCommands {
         } else {
             sender.sendMessage(new LiteralText(player.getEntityName() + " doesn't have any lives."),false);
         }
-        Initializer.LOGGER.info(playerLivesList.toString());
         return 1;
     }
 

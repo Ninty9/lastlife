@@ -26,8 +26,6 @@ public class PlayerLivesList {
     private static final Team[] teams = new Team[10];
 
     public static void SetTeamColors() {
-        //todo:check if these teams exist
-
         for(int i = 0; i < 10; i++)
         {
             Team team = serverObject.getScoreboard().getTeam(Integer.toString(i));
