@@ -1,7 +1,15 @@
 package io.github.ninty9.lastlife;
 
 import com.google.gson.Gson;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.network.Packet;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
+import net.minecraft.text.Texts;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -9,6 +17,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static io.github.ninty9.lastlife.Initializer.configPath;
 import static io.github.ninty9.lastlife.Initializer.serverObject;
@@ -114,5 +123,20 @@ public class Config {
                 if(p.getUuid().equals(config.boogeyman))
                     return p;
         return null;
+    }
+
+    public static void sendTitle(ServerPlayerEntity target, String titleIn, String subTitleIn, TextColor titleColor, TextColor subtitleColor){
+        LiteralText title = new LiteralText(titleIn);
+        title.setStyle(title.getStyle().withColor(titleColor));
+        LiteralText subTitle = new LiteralText(subTitleIn);
+        subTitle.setStyle(subTitle.getStyle().withColor(subtitleColor));
+        Function<Text, Packet<?>> subtitleConstructor = SubtitleS2CPacket::new;
+        try {
+            Function<Text, Packet<?>> titleConstructor = TitleS2CPacket::new;
+            target.networkHandler.sendPacket(titleConstructor.apply(Texts.parse(null, title, null, 0)) );
+            target.networkHandler.sendPacket(subtitleConstructor.apply(Texts.parse(null, subTitle, null, 0)) );
+        } catch (CommandSyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

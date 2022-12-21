@@ -1,6 +1,8 @@
 package io.github.ninty9.lastlife;
 
 import com.google.gson.Gson;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.TextColor;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -58,7 +60,7 @@ public class Sessions {
             if(!match && !IsExcluded(p.uuid))
             {
                 PlayerLivesList.RelativeChangeLives(p.uuid, -1);
-                p.hasDecay = true;
+                PlayerLivesList.SetDecay(p.uuid, true);
             }
         }
         playerJoinList.clear();
@@ -66,6 +68,9 @@ public class Sessions {
         if (Config.getBoogeyman() != null)
         {
             PlayerLivesList.RelativeChangeLives(Config.getBoogeyman(), -1);
+            ServerPlayerEntity boogey = Config.getBoogeymanPlayer();
+            if(boogey != null)
+                Config.sendTitle(boogey, "You have failed!", "You did not kill someone before the session ended, so your lives went down.", TextColor.parse("dark_red"), TextColor.parse("red"));
             Config.clearBoogeyman();
         }
     }

@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +73,7 @@ public class Initializer implements ModInitializer {
 							entity instanceof ServerPlayerEntity killer &&
 							Objects.equals(killer.getUuid(), Config.getBoogeyman())
 			) {
+				Config.sendTitle(killer, "Good job!", "You are no longer the boogeyman.", TextColor.parse("green"), TextColor.parse("white"));
 				Config.clearBoogeyman();
 				UpdateConfigFile();
 			}
@@ -88,9 +89,16 @@ public class Initializer implements ModInitializer {
 					PlayerLivesList.RollPlayer(player);
 				}
 			}
-			DisplayLivesMessage(player, false);
-			if(HasDecay(player))
-				player.sendMessage(new LiteralText("You missed a session, so your lives went down while you where away."), false);
+			if(HasDecay(player)) {
+				sendTitle(
+						player,
+						Integer.toString(GetLives(player)),
+						"You missed a session, so your lives went down while you where away.",
+						TextColor.fromFormatting(GetTeam(GetLives(player)).getColor()),
+						TextColor.parse("white")
+				);
+				PlayerLivesList.SetDecay(player.getUuid(), false);
+			}
 
 			Sessions.addToJoinList(player.getUuid());
 		});

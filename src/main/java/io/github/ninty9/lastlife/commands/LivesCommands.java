@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.ninty9.lastlife.Config;
+import io.github.ninty9.lastlife.Initializer;
 import io.github.ninty9.lastlife.PlayerLives;
 import io.github.ninty9.lastlife.PlayerLivesList;
 import net.minecraft.command.EntitySelector;
@@ -116,10 +117,15 @@ public class LivesCommands {
 
         ServerPlayerEntity player = context.getArgument("player", EntitySelector.class).getPlayer(context.getSource());
         if(IsPlayerOnList(player)){
-            sender.sendMessage(new LiteralText(player.getEntityName() + " has " + GetLives(player) + " lives."), false);
+            int lives = GetLives(player);
+            if(lives == 1)
+                sender.sendMessage(new LiteralText(player.getEntityName() + " has 1 life."), false);
+            else
+                sender.sendMessage(new LiteralText(player.getEntityName() + " has " + lives + " lives."), false);
         } else {
-            player.sendMessage(new LiteralText(player.getEntityName() + " doesn't have any lives."),false);
+            sender.sendMessage(new LiteralText(player.getEntityName() + " doesn't have any lives."),false);
         }
+        Initializer.LOGGER.info(playerLivesList.toString());
         return 1;
     }
 

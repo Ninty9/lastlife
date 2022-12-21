@@ -11,11 +11,13 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.TextColor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.github.ninty9.lastlife.Config.*;
+import static io.github.ninty9.lastlife.Config.GetRandomLife;
+import static io.github.ninty9.lastlife.Config.UpdateConfigFile;
 
 public class CommandConfirm {
 
@@ -79,11 +81,27 @@ public class CommandConfirm {
                 return 1;
             }
             case "sessionBoogey" -> {
-                assert confirm.target != null: " Null target for command confirmation";
-                Config.setBoogeyman(confirm.target);
-                //todo: tell target that they're boogey with title
-                UpdateConfigFile();
-                return 1;
+                if (confirm.target != null){
+                    Config.setBoogeyman(confirm.target);
+                    sender.sendMessage(new LiteralText("A player has been set as boogeyman."), false);
+                    Config.sendTitle(confirm.target, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
+                    UpdateConfigFile();
+                    return 1;
+                }
+                Initializer.LOGGER.error("something went wrong with boogey confirm");
+                return 0;
+            }
+            case "sessionBoogeyKnown" -> {
+                if (confirm.target != null) {
+                    Initializer.LOGGER.info(PlayerLivesList.playerLivesList.toString());
+                    Config.setBoogeyman(confirm.target);
+                    sender.sendMessage(new LiteralText(confirm.target.getEntityName() + " has been set as boogeyman."), false);
+                    Config.sendTitle(confirm.target, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
+                    UpdateConfigFile();
+                    return 1;
+                }
+                Initializer.LOGGER.error("something went wrong with boogey confirm");
+                return 0;
             }
         }
 

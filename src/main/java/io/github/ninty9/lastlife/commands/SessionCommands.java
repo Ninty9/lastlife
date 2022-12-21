@@ -12,11 +12,12 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.TextColor;
 
 import java.util.*;
 
 import static io.github.ninty9.lastlife.Config.UpdateConfigFile;
-
+import static io.github.ninty9.lastlife.Config.isSessionOn;
 import static io.github.ninty9.lastlife.Initializer.LOGGER;
 import static io.github.ninty9.lastlife.Initializer.serverObject;
 
@@ -54,6 +55,11 @@ public class SessionCommands {
                 .executes(SessionCommands::setBoogeyman)
                 .build();
 
+        LiteralCommandNode<ServerCommandSource> getNode = CommandManager
+                .literal("get")
+                .executes(SessionCommands::get)
+                .build();
+
         //usage: /session [start|stop]
         dispatcher.getRoot().addChild(sessionNode);
         sessionNode.addChild(startNode);
@@ -61,6 +67,7 @@ public class SessionCommands {
         sessionNode.addChild(clearNode);
         sessionNode.addChild(boogeymanNode);
             boogeymanNode.addChild(playerBoogeymanNode);
+        sessionNode.addChild(getNode);
     }
 
 
@@ -101,11 +108,8 @@ public class SessionCommands {
 
             for (ServerPlayerEntity p: Initializer.serverObject.getPlayerManager().getPlayerList()) {
                 p.sendMessage(new LiteralText("Session has ended!"), false);
-                ServerPlayerEntity boogey = Config.getBoogeymanPlayer();
-                if(boogey != null)
-                    sender.sendMessage(new LiteralText("The boogeyman was " + boogey.getEntityName()), false);
-                else if (Config.getBoogeyman() != null)
-                    sender.sendMessage(new LiteralText("The boogeyman was offline."), false);
+                if(Config.getBoogeymanName() != null)
+                    sender.sendMessage(new LiteralText("The boogeyman was " + Config.getBoogeymanName()), false);
                 else
                     sender.sendMessage(new LiteralText("There was no boogeyman."), false);
             }
@@ -124,13 +128,16 @@ public class SessionCommands {
             if (!p.equals(sender))
                 p.sendMessage(new LiteralText("Session has been cleared."), false);
 
-        if(Config.getBoogeyman() != null)
+        if(Config.getBoogeyman() != null) {
             sender.sendMessage(new LiteralText("Session has been cleared, the boogeyman was " + Config.getBoogeymanName()), false);
+            ServerPlayerEntity boogey = Config.getBoogeymanPlayer();
+            if (boogey != null)
+                Config.sendTitle(boogey, "You are no longer the boogeyman!", "The session was cleared, your lives have not gone down.", TextColor.parse("green"), TextColor.parse("green"));
+        }
         else
             sender.sendMessage(new LiteralText("Session has been cleared, there was no boogeyman."), false);
 
         Sessions.clearSession();
-        Config.clearBoogeyman();
         return 1;
     }
 
@@ -138,23 +145,24 @@ public class SessionCommands {
         //sets a random boogeyman, with option to add an admin to not get picked
 
         ServerPlayerEntity sender = context.getSource().getPlayer();
+        Initializer.LOGGER.info(PlayerLivesList.playerLivesList.toString());
 
         if (context.getNodes().size() == 3) {
             ServerPlayerEntity boogey = context.getArgument("boogey", EntitySelector.class).getPlayer(context.getSource());
             if(Config.getBoogeyman() == null){
                 Config.setBoogeyman(boogey);
                 UpdateConfigFile();
-                sender.sendMessage(new LiteralText(boogey.getEntityName() + " has been set as boogeyman."), true);
-                //todo: tell the boogeyman that they're boogeyman with title
+                sender.sendMessage(new LiteralText(boogey.getEntityName() + " has been set as boogeyman."), false);
+                Config.sendTitle(boogey, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
                 return 1;
             } else {
-                return boogeyExistsConfirm(sender, boogey);
+                return boogeyExistsConfirm(sender, boogey, true);
             }
         }
 
         try {
             List<ServerPlayerEntity> playerList = new ArrayList<>(context.getSource().getServer().getPlayerManager().getPlayerList());
-            var redList = PlayerLivesList.playerLivesList;
+            List<PlayerLives> redList = new ArrayList<>(PlayerLivesList.playerLivesList);
             redList.removeIf(player -> player.lives > 1);
 
             List<UUID> removeList = new ArrayList<>();
@@ -186,12 +194,15 @@ public class SessionCommands {
 
                 if(Config.getBoogeyman() == null) {
                     Config.setBoogeyman(boogey);
-                    //todo: tell target that they're boogey with title
-                    sender.sendMessage(new LiteralText(boogey.getEntityName() + " has been set as boogeyman."), true);
+
+                    sender.sendMessage(new LiteralText("A player has been set as boogeyman."), false);
+                    Config.sendTitle(boogey, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
                     UpdateConfigFile();
                     return 1;
                 } else {
-                    return boogeyExistsConfirm(sender, boogey);
+                    //todo: remove these logs
+                    Initializer.LOGGER.info(PlayerLivesList.playerLivesList.toString());
+                    return boogeyExistsConfirm(sender, boogey, false);
                 }
             }
             sender.sendMessage(new LiteralText("There are no valid players to assign boogeyman to."), false);
@@ -202,12 +213,34 @@ public class SessionCommands {
         return 0;
     }
 
-    private static int boogeyExistsConfirm(ServerPlayerEntity sender, ServerPlayerEntity boogey) {
+    private static int boogeyExistsConfirm(ServerPlayerEntity sender, ServerPlayerEntity boogey, boolean isSet) {
         sender.sendMessage(new LiteralText("Are you sure?"), false);
         sender.sendMessage(new LiteralText("There is already a boogeyman, this will overwrite that."), false);
         sender.sendMessage(new LiteralText("The current boogeyman is: " + Config.getBoogeymanName() + "."), false);
         sender.sendMessage(new LiteralText("Type \"/confirm\" to confirm."), false);
-        CommandConfirm.addConfirm(new Confirmation(sender, "sessionBoogey", boogey));
+        if(isSet)
+            CommandConfirm.addConfirm(new Confirmation(sender, "sessionBoogeyKnown", boogey));
+        else
+            CommandConfirm.addConfirm(new Confirmation(sender, "sessionBoogey", boogey));
         return 0;
+    }
+
+    private static int get(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity sender = context.getSource().getPlayer();
+        int re;
+        if(isSessionOn()) {
+            sender.sendMessage(new LiteralText("There is currently a session."), false);
+            re = 1;
+        }
+        else {
+            sender.sendMessage(new LiteralText("There isn't a session right now."), false);
+            re = 0;
+        }
+
+        if(Config.getBoogeymanName() != null)
+            sender.sendMessage(new LiteralText("The current boogeyman is: " + Config.getBoogeymanName() + "."), false);
+        else
+            sender.sendMessage(new LiteralText("There is no boogeyman."), false);
+        return re;
     }
 }

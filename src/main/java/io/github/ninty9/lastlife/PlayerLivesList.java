@@ -23,57 +23,49 @@ import static io.github.ninty9.lastlife.Initializer.*;
 
 public class PlayerLivesList {
     public static List<PlayerLives> playerLivesList = new ArrayList<>();
-
-    private static Team life0;
-    private static Team life1;
-    private static Team life2;
-    private static Team life3;
-    private static Team life4;
-    private static Team life5;
-    private static Team life6;
-    private static Team life7;
-    private static Team life8;
-    private static Team life9;
+    private static final Team[] teams = new Team[10];
 
     public static void SetTeamColors() {
         //todo:check if these teams exist
-        life0 = serverObject.getScoreboard().addTeam("0");
-        life1 = serverObject.getScoreboard().addTeam("1");
-        life2 = serverObject.getScoreboard().addTeam("2");
-        life3 = serverObject.getScoreboard().addTeam("3");
-        life4 = serverObject.getScoreboard().addTeam("4");
-        life5 = serverObject.getScoreboard().addTeam("5");
-        life6 = serverObject.getScoreboard().addTeam("6");
-        life7 = serverObject.getScoreboard().addTeam("7");
-        life8 = serverObject.getScoreboard().addTeam("8");
-        life9 = serverObject.getScoreboard().addTeam("9");
 
-        life0.setColor(Formatting.byCode('7'));
-        life1.setColor(Formatting.byCode('4'));
-        life2.setColor(Formatting.byCode('e'));
-        life3.setColor(Formatting.byCode('a'));
-        life4.setColor(Formatting.byCode('2'));
-        life5.setColor(Formatting.byCode('2'));
-        life6.setColor(Formatting.byCode('b'));
-        life7.setColor(Formatting.byCode('b'));
-        life8.setColor(Formatting.byCode('1'));
-        life9.setColor(Formatting.byCode('1'));
+        for(int i = 0; i < 10; i++)
+        {
+            Team team = serverObject.getScoreboard().getTeam(Integer.toString(i));
+
+            if(team != null) {
+                teams[i] = team;
+            } else {
+                LOGGER.info("Adding team " + i + ".");
+                teams[i] = serverObject.getScoreboard().addTeam(Integer.toString(i));
+            }
+        }
+
+        teams[0].setColor(Formatting.byCode('7'));
+        teams[1].setColor(Formatting.byCode('4'));
+        teams[2].setColor(Formatting.byCode('e'));
+        teams[3].setColor(Formatting.byCode('a'));
+        teams[4].setColor(Formatting.byCode('2'));
+        teams[5].setColor(Formatting.byCode('2'));
+        teams[6].setColor(Formatting.byCode('b'));
+        teams[7].setColor(Formatting.byCode('b'));
+        teams[8].setColor(Formatting.byCode('1'));
+        teams[9].setColor(Formatting.byCode('1'));
 
 
     }
 
     public static Team GetTeam(int in) {
         return switch (in) {
-            case 0 -> life0;
-            case 1 -> life1;
-            case 2 -> life2;
-            case 3 -> life3;
-            case 4 -> life4;
-            case 5 -> life5;
-            case 6 -> life6;
-            case 7 -> life7;
-            case 8 -> life8;
-            case 9 -> life9;
+            case 0 -> teams[0];
+            case 1 -> teams[1];
+            case 2 -> teams[2];
+            case 3 -> teams[3];
+            case 4 -> teams[4];
+            case 5 -> teams[5];
+            case 6 -> teams[6];
+            case 7 -> teams[7];
+            case 8 -> teams[8];
+            case 9 -> teams[9];
             default -> null;
         };
     }
@@ -96,7 +88,6 @@ public class PlayerLivesList {
         try
         {
             boolean match = false;
-            LOGGER.info("e");
             if (playerLivesList.isEmpty()) {
                 playerLivesList.add(player);
             } else {
@@ -116,9 +107,6 @@ public class PlayerLivesList {
             UpdateFile();
         }
         catch (ConcurrentModificationException e) {
-            LOGGER.info(e.getMessage());
-            LOGGER.info(e.toString());
-            LOGGER.error(String.valueOf(e));
             e.printStackTrace();
         throw e;
         }
@@ -147,26 +135,18 @@ public class PlayerLivesList {
                 AddToList(p);
                 UpdatePlayer(p.uuid);
             }
-            Initializer.LOGGER.info(playerLivesList.toString());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public static void ChangeLives(UUID uuid, int lives) {
-        try {
-            for (PlayerLives p : playerLivesList) {
-                if (Objects.equals(p.uuid, uuid)) {
-                    playerLivesList.get(playerLivesList.indexOf(p)).lives = lives;
-                    UpdateFile();
-                    UpdatePlayer(uuid);
-                }
+        for (PlayerLives p : playerLivesList) {
+            if (Objects.equals(p.uuid, uuid)) {
+                playerLivesList.get(playerLivesList.indexOf(p)).lives = lives;
+                UpdateFile();
+                UpdatePlayer(uuid);
             }
-        }
-        catch (Exception ex)
-        {
-            LOGGER.error(ex.toString());
-            throw ex;
         }
     }
 
@@ -191,9 +171,11 @@ public class PlayerLivesList {
     }
 
     public static void RollPlayer(UUID uuid) {
+        PlayerLives playerLives = new PlayerLives(uuid, Config.GetRandomLife());
+        PlayerLivesList.AddToList(playerLives);
         ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
         if (player != null){
-            RollPlayer(player);
+            UpdatePlayer(player);
         }
     }
 
@@ -205,8 +187,10 @@ public class PlayerLivesList {
     }
 
     public static int GetLives(UUID uuid) {
-        ServerPlayerEntity player = Initializer.serverObject.getPlayerManager().getPlayer(uuid);
-        return GetLives(player);
+        for (PlayerLives p: playerLivesList)
+            if (Objects.equals(p.uuid, uuid))
+                return p.lives;
+        return 0;
     }
 
 
@@ -234,11 +218,13 @@ public class PlayerLivesList {
     public static void DisplayLivesMessage(ServerPlayerEntity player, boolean death) {
         int playerLives = GetLives(player);
         Function<Text, Packet<?>> titleConstructor = TitleS2CPacket::new;
+        Function<Text, Packet<?>> subtitleConstructor = SubtitleS2CPacket::new;
 
         LiteralText text = new LiteralText(String.valueOf(playerLives));
         text.setStyle(text.getStyle().withColor(GetTeam(playerLives).getColor()));
         try {
             player.networkHandler.sendPacket(titleConstructor.apply(Texts.parse(null, text, null, 0)) );
+            player.networkHandler.sendPacket(subtitleConstructor.apply(Texts.parse(null, new LiteralText(""), null, 0)) );
         } catch (CommandSyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -267,7 +253,6 @@ public class PlayerLivesList {
 
             LiteralText subText = new LiteralText(subtitle);
             subText.setStyle(subText.getStyle().withColor(subtitleColor));
-            Function<Text, Packet<?>> subtitleConstructor = SubtitleS2CPacket::new;
             try {
                 player.networkHandler.sendPacket(subtitleConstructor.apply(Texts.parse(null, subText, null, 0)) );
             } catch (CommandSyntaxException e) {
@@ -303,4 +288,12 @@ public class PlayerLivesList {
                 return p.hasDecay;
         return false;
     }
+
+    public static void SetDecay(UUID player, boolean decay) {
+        for (PlayerLives p : playerLivesList)
+            if (Objects.equals(p.uuid, player))
+                p.hasDecay = decay;
+
+    }
+
 }
