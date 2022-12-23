@@ -26,7 +26,7 @@ public class SessionCommands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, boolean ignoredDedicated) {
 
         LiteralCommandNode<ServerCommandSource> sessionNode = CommandManager
-                .literal("session")
+                .literal("session").requires(source -> source.hasPermissionLevel(4))
                 .build();
 
         LiteralCommandNode<ServerCommandSource> startNode = CommandManager

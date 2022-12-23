@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(PlayerAdvancementTracker.class)
-public class AchievementMixin {
+public class PlayerAdvancementTrackerMixin  {
     @Redirect( method = "grantCriterion", at = @At( value = "INVOKE",
     target = "Lnet/minecraft/server/network/ServerPlayerEntity;getDisplayName()Lnet/minecraft/text/Text;"))
     private Text ChangePlayer(ServerPlayerEntity instance) {

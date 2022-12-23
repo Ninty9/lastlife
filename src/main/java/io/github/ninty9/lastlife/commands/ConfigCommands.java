@@ -17,7 +17,7 @@ public class ConfigCommands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, boolean ignoreDedicated) {
 
         LiteralCommandNode<ServerCommandSource> configNode = CommandManager
-                .literal("config")
+                .literal("config").requires(source -> source.hasPermissionLevel(4))
                 .build();
 
         LiteralCommandNode<ServerCommandSource> updateNode = CommandManager

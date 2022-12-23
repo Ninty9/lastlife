@@ -25,7 +25,7 @@ public class LivesCommands {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, boolean ignoredDedicated) {
 
         LiteralCommandNode<ServerCommandSource> livesNode = CommandManager
-                .literal("lives")
+                .literal("lives").requires(source -> source.hasPermissionLevel(4))
                 .build();
 
         LiteralCommandNode<ServerCommandSource> rollNode = CommandManager

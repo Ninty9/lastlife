@@ -4,7 +4,8 @@
   "package": "io.github.ninty9.lastlife.mixins",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "AchievementMixin"
+    "PlayerAdvancementTrackerMixin",
+    "AdvancementLoaderMixin"
   ],
   "client": [],
   "injectors": {
