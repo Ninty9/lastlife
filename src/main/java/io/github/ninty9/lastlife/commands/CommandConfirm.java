@@ -85,7 +85,6 @@ public class CommandConfirm {
                     Config.setBoogeyman(confirm.target);
                     sender.sendMessage(new LiteralText("A player has been set as boogeyman."), false);
                     Config.sendTitle(confirm.target, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
-                    UpdateConfigFile();
                     return 1;
                 }
                 Initializer.LOGGER.error("something went wrong with boogey confirm");
@@ -96,7 +95,6 @@ public class CommandConfirm {
                     Config.setBoogeyman(confirm.target);
                     sender.sendMessage(new LiteralText(confirm.target.getEntityName() + " has been set as boogeyman."), false);
                     Config.sendTitle(confirm.target, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
-                    UpdateConfigFile();
                     return 1;
                 }
                 Initializer.LOGGER.error("something went wrong with boogey confirm");

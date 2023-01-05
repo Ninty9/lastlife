@@ -45,6 +45,12 @@ public class Initializer implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
+		//FIXME
+		// - session clear breaks the next session and makes everyone have life decay
+		// - something about spectator  not working properly on death
+
+		//TODO make the system ignore you if you're not on the list
+
 		LoadLives();
 		LoadConfig();
 		LoadSession();

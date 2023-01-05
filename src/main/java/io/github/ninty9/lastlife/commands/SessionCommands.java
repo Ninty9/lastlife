@@ -147,14 +147,18 @@ public class SessionCommands {
 
         if (context.getNodes().size() == 3) {
             ServerPlayerEntity boogey = context.getArgument("boogey", EntitySelector.class).getPlayer(context.getSource());
-            if(Config.getBoogeyman() == null){
-                Config.setBoogeyman(boogey);
-                UpdateConfigFile();
+            if (Config.getBoogeyman() != null) {
+                return boogeyExistsConfirm(sender, boogey, true);
+            }
+            var boogeyResult = Config.setBoogeyman(boogey);
+            if (boogeyResult) {
                 sender.sendMessage(new LiteralText(boogey.getEntityName() + " has been set as boogeyman."), false);
                 Config.sendTitle(boogey, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
                 return 1;
             } else {
-                return boogeyExistsConfirm(sender, boogey, true);
+                sender.sendMessage(new LiteralText(boogey.getEntityName() + " only has one life left and probably shouldn't be a boogeyman, if you do want to make them a boogeyman, type \"/confirm\""), false);
+                CommandConfirm.addConfirm(new Confirmation(sender, "sessionBoogeyKnown", boogey));
+                return 0;
             }
         }
 
@@ -191,12 +195,15 @@ public class SessionCommands {
                     throw new RuntimeException("fucked up");
 
                 if(Config.getBoogeyman() == null) {
-                    Config.setBoogeyman(boogey);
+                    var boogeyResult = Config.setBoogeyman(boogey);
 
-                    sender.sendMessage(new LiteralText("A player has been set as boogeyman."), false);
-                    Config.sendTitle(boogey, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
-                    UpdateConfigFile();
-                    return 1;
+                    if (boogeyResult){
+                        sender.sendMessage(new LiteralText("A player has been set as boogeyman."), false);
+                        Config.sendTitle(boogey, "You are the boogeyman!", "Kill someone before the end of the session or lose a life.", TextColor.parse("dark_red"), TextColor.parse("red"));
+                        return 1;
+                    } else {
+                        sender.sendMessage(new LiteralText("Something went wrong, nobody has been set as a boogeyman."), false);
+                    }
                 } else {
                     return boogeyExistsConfirm(sender, boogey, false);
                 }

@@ -69,9 +69,14 @@ public class Config {
     private String boogeymanName;
     public static String getBoogeymanName() { return config.boogeymanName; }
 
-    public static void setBoogeyman(ServerPlayerEntity boogey) {
+    public static boolean setBoogeyman(ServerPlayerEntity boogey) {
+        if (PlayerLivesList.GetLives(boogey) > 1) {
+            return false;
+        }
         config.boogeyman = boogey.getUuid();
         config.boogeymanName = boogey.getEntityName();
+        UpdateConfigFile();
+        return true;
     }
 
     public Config(int MinLives, int MaxLives, boolean RollOnJoin, boolean SessionOn, UUID Boogeyman, List<UUID> Excludes, String BoogeymanName) {
